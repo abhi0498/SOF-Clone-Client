@@ -1,0 +1,7 @@
+p:hover{
+    cursor:  pointer;
+}
+
+p{
+    transition: ease-out;
+}
