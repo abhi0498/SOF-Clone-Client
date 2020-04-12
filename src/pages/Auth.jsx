@@ -8,16 +8,17 @@ const Auth = () => {
     const [emailID, setEmailID] = useState('');
     const [password, setPassword] = useState('')
     const [error, setError] = useState('')
+    const [displaySuccess, setdisplaySuccess] = useState(false)
 
     const context = useContext(AuthContext);
 
     const changePageState = () => {
         if (pageState === 'login') setPageState('signup')
         else setPageState('login')
+        setdisplaySuccess(false)
     }
     const login = (e) => {
         context.token = 'a'
-        console.log(context);
         e.preventDefault()
         if (emailID.trim().length === 0 || password.trim().length === 0) {
             return
@@ -40,7 +41,7 @@ const Auth = () => {
             }`}
         }
 
-        fetch('http://localhost:5000/graphql', {
+        fetch(context.API, {
             method: 'POST',
             body: JSON.stringify(reqBody),
             headers: {
@@ -51,18 +52,24 @@ const Auth = () => {
                 return res.json()
             })
             .then(res => {
+
                 if (res.errors) {
                     setError(res.errors[0].message)
                     setDisplayError(true)
                     setTimeout(() => {
                         setDisplayError(false)
                     }, 3000);
+                    setdisplaySuccess(false)
                 }
                 else {
                     setError('')
                     setDisplayError(false)
+                    setdisplaySuccess(true)
                 }
                 if (res.data.login.token) {
+                    sessionStorage.setItem('token', res.data.login.token);
+                    sessionStorage.setItem('userID', res.data.login.userID);
+                    sessionStorage.setItem('tokenExpiration', res.data.login.tokenExpiration);
                     context.login(res.data.login.token, res.data.login.userID, res.data.login.tokenExpiration)
                 }
                 console.log(res.errors);
@@ -93,6 +100,8 @@ const Auth = () => {
                     </div>
                     <p className={`alert alert-danger ${displayError ? '' : 'd-none'}`} role="alert">
                         {error}</p>
+                    <p className={`alert alert-primary ${displaySuccess ? '' : 'd-none'}`} role="alert">
+                        Successfully signed up.Please login.</p>
                     <div className="d-flex justify-content-around mt-5">
                         <button className="btn btn-primary">{pageState !== 'login' ? 'SignUp' : 'Login'}</button>
                     </div>
